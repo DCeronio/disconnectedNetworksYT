@@ -1,7 +1,7 @@
 # from google python client
 from googleapiclient.discovery import build
 # key from console.developers.google.com project
-api_key = "AIzaSyBehrcnXuNUlBA-98gukoL2nwY0V3UJaS4"
+api_key = ""
 youtube = build('youtube', 'v3', developerKey=api_key)
 print(type(youtube))
 req = youtube.search().list(q='B-tree', part='snippet',
