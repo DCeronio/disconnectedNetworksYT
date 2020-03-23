@@ -4,5 +4,4 @@ YouTube('https://youtu.be/9bZkp7q19f0').streams.get_highest_resolution().downloa
 yt = YouTube('http://youtube.com/watch?v=9bZkp7q19f0')
 for stream in yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution'):
     print(stream)
-# yt.streams.filter(progressive=True, file_extension='mp4').order_by(
-# 'resolution')[-1].download()
+yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution')[-1].download()
