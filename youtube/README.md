@@ -48,7 +48,7 @@ Youtube username is taken at the begginning of the program and the actions inclu
 An example of a JSON file would be:
 ```
 {
-	‘Dylan Ceronio’:
+	‘Dylan’:
 	{
 		rate:
 		{
