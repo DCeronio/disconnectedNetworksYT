@@ -1,5 +1,33 @@
 import click
 import json
+from zipfile import ZipFile
+
+"""
+Type 'python cmdp.py --help' for options
+"""
+
+
+class listParamType(click.ParamType):
+    """
+    In upload have tags parameter that is a list of strings, need to convert from String to list.
+    """
+    name = "list"
+
+    def convert(self, value, param, ctx):
+        try:
+            return value.strip('[]').split(',')
+        except AttributeError:
+            self.fail(
+                "Expected a String for strip method "
+                f"{value!r} of type {type(value).__name__}",
+                param,
+                ctx,
+            )
+
+
+LIST_TYPE = listParamType()
+
+file_name = "JsonAndVideos.zip"
 
 
 @click.group()
@@ -9,23 +37,111 @@ def main(ctx):
     Main Method that runs before a command runs
     """
     usernameinput = input('Enter your Youtube username: ')
-    f = open('queueDict.txt', 'r')
-    ftext = f.read()
-    f.close()
-    queueDict = json.loads(ftext)
-    print(queueDict)
-    ctx.obj = {
-        'username': usernameinput,
-        'dict': queueDict
-    }
+
+    with ZipFile(file_name, 'r') as zip:
+        zip.printdir()
+        with zip.open('queueDict.json', 'r') as f:
+            ftext = f.read()
+            queueDict = json.loads(ftext)
+            print(queueDict)
+            ctx.obj = {
+                'username': usernameinput,
+                'dict': queueDict
+            }
+            f.close()
+        zip.close()
 
 
 @click.pass_context
 def updateJson(ctx):
-    f = open('queueDict.txt', 'w')
-    queueJson = json.dumps(ctx.obj['dict'])
-    f.write(queueJson)
-    f.close()
+    uploadDetails = ctx.obj['dict'][ctx.obj['username']
+                                    ]['upload']['uploadDetails']
+    videoFileToAdd = open(uploadDetails[len(uploadDetails) - 1][0], 'rb')
+
+    with ZipFile(file_name, 'w') as zip:
+        with zip.open('queueDict.json', 'w') as f:
+            queueJson = json.dumps(ctx.obj['dict'])
+            f.write(bytes(queueJson, encoding='utf8'))
+            f.close()
+
+        zip.close()
+
+
+def countList(x):
+    count = 0
+    for el in x:
+        if isinstance(el, list):
+            count += 1
+    return count
+
+
+@main.command()
+@click.pass_context
+@click.argument('videopath')
+@click.argument('title')
+@click.argument('description')
+@click.argument('tags', type=LIST_TYPE)
+@click.argument('category')
+@click.argument('privacystatus')
+def upload(ctx, videopath, title, description, tags, category, privacystatus):
+    """
+    Queues a video the user wants uploaded.
+
+    file: File path to the video to upload
+
+    title: Title of the video.
+
+    description: Description for the video.
+
+    tags: Python List of words associated with the video when searched.
+
+    category: The category ID for the YouTube video category associated with the video.
+
+    privacystatus: The privacy status of the video, 'private', 'public', 'unlisted'.
+    """
+    # empty dict file
+    if not ctx.obj['dict']:
+        ctx.obj['dict'] = {
+            ctx.obj['username']: {
+                'upload': {
+                    'uploadDetails': [videopath, title, description,
+                                      tags, category, privacystatus]
+                }
+            }
+        }
+        print(ctx.obj['dict'])
+    # first time user entry
+    elif not ctx.obj['dict'].get(ctx.obj['username']):
+        ctx.obj['dict'][ctx.obj['username']] = {
+            'upload': {
+                'uploadDetails': [title, description,
+                                  tags, category, privacystatus]
+            }
+        }
+        print(ctx.obj['dict'])
+    # first time upload but user entry exists
+    elif not ctx.obj['dict'][ctx.obj['username']].get('upload'):
+        ctx.obj['dict'][ctx.obj['username']]['upload'] = {
+            'uploadDetails': [videopath, title, description,
+                              tags, category, privacystatus]
+        }
+        print(ctx.obj['dict'])
+    # updating user subscribe entry
+    else:
+        currentEntry = ctx.obj['dict'][ctx.obj['username']
+                                       ]['upload']['uploadDetails']
+        print('current entry is: ', currentEntry)
+        # single entry
+        if countList(currentEntry) == 1:
+            ctx.obj['dict'][ctx.obj['username']
+                            ]['upload']['uploadDetails'] = [currentEntry, [videopath, title, description, tags, category, privacystatus]]
+            print(ctx.obj['dict'])
+        # multiple entry
+        else:
+            ctx.obj['dict'][ctx.obj['username']
+                            ]['upload']['uploadDetails'].append([videopath, title, description, tags, category, privacystatus])
+            print(ctx.obj['dict'])
+    updateJson()
 
 
 @main.command()
