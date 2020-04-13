@@ -42,7 +42,7 @@ Youtube username is taken at the begginning of the program and the actions inclu
   rate       Queues what a user would rate a video.              
   search     Queues what a user wants to search.
   subscribe  Queues a channel a user wants to subscribe to.
-  upload     Queues a video the user
+  upload     Queues a video the user wants uploaded
 ```
 
 An example of a JSON file would be:
