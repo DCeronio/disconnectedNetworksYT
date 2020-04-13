@@ -1,14 +1,14 @@
 # disconnectedNetworksYT
 cs 180h senior project
 
-#Project Explanation
+# Project Explanation
 
 The project is setup as a server and client. The client queues the actions the user would
 like to take in a zipped JSON file along with the .mp3's of videos they would also like to upload.
 The server will read the JSON full of actions and service each action. It will return confirmations 
 and other needed data to the client to be displayed to the user.
 
-##google project setup
+## google project setup
 Since the project uses the youtube data api we will need a api key. This is retrieved through
 **console.developers.google.com** where you create a project. 
 
@@ -29,7 +29,7 @@ a JSON and use the file as clien_secret_file.
 These request user consent so that the app can access the users data, this is down through the terminal when using the 
 program. It will take the user to a google login where they can give consent to the program acting on their behalf. 
 
-##Client
+## Client
 The cmdp.py file is the commandline prompt that will act as a simple commandline client. The 
 user can type
 ```
