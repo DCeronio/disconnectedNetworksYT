@@ -70,6 +70,8 @@ An example of a JSON file would be:
 }
 
 ```
-
+The file uses the **click api** to help with the command line interface. That can be found
+here: **https://click.palletsprojects.com/en/7.x/** In the file the click ctx functionality
+is used to pass the JSON file as a dictionary between the functions. 
 
 
