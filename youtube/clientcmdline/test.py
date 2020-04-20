@@ -1,10 +1,16 @@
+import shutil
+from zipfile import ZipFile
 
-with open('PSY - GANGNAM STYLE.mp4', 'rb') as file:
-    byteA = bytearray()
-    while True:
-        byte = file.read(1)
-        byteA.append(int(byte))
-    print(byteA)
+testzip = ZipFile('test.zip', 'a')
+#videofile = open('PSY - GANGNAM STYLE.mp4', 'r')
+#shutil.copyfileobj(videofile, testzip)
+testzip.write('PSY - GANGNAM STYLE.mp4')
+testzip.close
+"""
+with ZipFile.open('test.zip', 'w') as zip:
+    with open('PSY - GANGNAM STYLE.mp4', 'r') as videofile:
+        shutil.copyfile(videofile, zip)
+"""
 """
 x = [1, [1, 2, 3], 2]
 y = [[1, [1, 2, 3], 2], [4, [5, 6, 7], 4]]

@@ -1,6 +1,9 @@
 import click
 import json
 from zipfile import ZipFile
+import tempfile
+import shutil
+import os
 
 """
 Type 'python cmdp.py --help' for options
@@ -29,6 +32,23 @@ LIST_TYPE = listParamType()
 
 file_name = "JsonAndVideos.zip"
 
+# https://stackoverflow.com/questions/4653768/overwriting-file-in-ziparchive
+
+
+def remove_from_zip(zipfname, *filenames):
+    tempdir = tempfile.mkdtemp()
+    try:
+        tempname = os.path.join(tempdir, 'new.zip')
+        with ZipFile(zipfname, 'r') as zipread:
+            with ZipFile(tempname, 'w') as zipwrite:
+                for item in zipread.infolist():
+                    if item.filename not in filenames:
+                        data = zipread.read(item.filename)
+                        zipwrite.writestr(item, data)
+        shutil.move(tempname, zipfname)
+    finally:
+        shutil.rmtree(tempdir)
+
 
 @click.group()
 @click.pass_context
@@ -41,14 +61,20 @@ def main(ctx):
     with ZipFile(file_name, 'r') as zip:
         zip.printdir()
         with zip.open('queueDict.json', 'r') as f:
-            ftext = f.read()
-            queueDict = json.loads(ftext)
-            print(queueDict)
-            ctx.obj = {
-                'username': usernameinput,
-                'dict': queueDict
-            }
-            f.close()
+            try:
+                ftext = f.read()
+                queueDict = json.loads(ftext)
+                ctx.obj = {
+                    'username': usernameinput,
+                    'dict': queueDict
+                }
+                f.close()
+            except json.JSONDecodeError:
+                ctx.obj = {
+                    'username': usernameinput,
+                    'dict': {}
+                }
+
         zip.close()
 
 
@@ -56,14 +82,23 @@ def main(ctx):
 def updateJson(ctx):
     uploadDetails = ctx.obj['dict'][ctx.obj['username']
                                     ]['upload']['uploadDetails']
-    videoFileToAdd = open(uploadDetails[len(uploadDetails) - 1][0], 'rb')
+    # getting video path that needs to be zipped
 
-    with ZipFile(file_name, 'w') as zip:
-        with zip.open('queueDict.json', 'w') as f:
-            queueJson = json.dumps(ctx.obj['dict'])
-            f.write(bytes(queueJson, encoding='utf8'))
-            f.close()
+    if(len(uploadDetails) == 6):
+        videoFileToAdd = uploadDetails[0]
+    else:
+        videoFileToAdd = uploadDetails[len(uploadDetails) - 1][0]
+    print(os.path.basename(videoFileToAdd))
 
+    # updating the queueJson adding video
+    queueFile = open('queueDict.json', 'w')
+    queueJson = json.dumps(ctx.obj['dict'])
+    queueFile.write(queueJson)
+    queueFile.close()
+    remove_from_zip(file_name, 'queueDict.json')
+    with ZipFile(file_name, 'a') as zip:
+        zip.write('queueDict.json')
+        zip.write(os.path.basename(videoFileToAdd))
         zip.close()
 
 
@@ -114,7 +149,7 @@ def upload(ctx, videopath, title, description, tags, category, privacystatus):
     elif not ctx.obj['dict'].get(ctx.obj['username']):
         ctx.obj['dict'][ctx.obj['username']] = {
             'upload': {
-                'uploadDetails': [title, description,
+                'uploadDetails': [videopath, title, description,
                                   tags, category, privacystatus]
             }
         }
