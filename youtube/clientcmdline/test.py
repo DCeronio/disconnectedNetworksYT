@@ -1,11 +1,16 @@
 import shutil
 from zipfile import ZipFile
+import sys
 
-testzip = ZipFile('test.zip', 'a')
-#videofile = open('PSY - GANGNAM STYLE.mp4', 'r')
-#shutil.copyfileobj(videofile, testzip)
-testzip.write('PSY - GANGNAM STYLE.mp4')
-testzip.close
+
+for arg in sys.argv:
+    print(arg)
+
+testzip = ZipFile('test.zip', 'w')
+videofile = open('PSY - GANGNAM STYLE.mp4', 'rb')
+shutil.copyfileobj(videofile, testzip)
+#testzip.write('PSY - GANGNAM STYLE.mp4')
+# testzip.close
 """
 with ZipFile.open('test.zip', 'w') as zip:
     with open('PSY - GANGNAM STYLE.mp4', 'r') as videofile:

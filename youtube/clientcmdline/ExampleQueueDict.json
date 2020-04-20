@@ -1,0 +1,55 @@
+{
+    "example": {
+        "comment": {
+            "commententries": [
+                "video name",
+                "channelname",
+                "comment text"
+            ]
+        },
+        "rate": {
+            "rating": [
+                "like",
+                "videoname",
+                "channelname"
+            ]
+        },
+        "search": {
+            "query": [
+                "search query",
+                "50"
+            ]
+        },
+        "subscribe": {
+            "channelname": "channelname"
+        },
+        "upload": {
+            "uploadDetails": [
+                "X:exaample/path/video.file",
+                "video title",
+                "description of video",
+                [
+                    "tag1",
+                    "tag2"
+                ],
+                "42",
+                "private"
+            ]
+        }
+    },
+    "anotherUser": {
+        "upload": {
+            "uploadDetails": [
+                "X:exaample/path/video.file",
+                "video title",
+                "description of video",
+                [
+                    "tag1",
+                    "tag2"
+                ],
+                "42",
+                "private"
+            ]
+        }
+    }
+}

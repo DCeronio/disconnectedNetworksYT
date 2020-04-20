@@ -4,6 +4,7 @@ from zipfile import ZipFile
 import tempfile
 import shutil
 import os
+import sys
 
 """
 Type 'python cmdp.py --help' for options
@@ -66,29 +67,31 @@ def main(ctx):
                 queueDict = json.loads(ftext)
                 ctx.obj = {
                     'username': usernameinput,
-                    'dict': queueDict
+                    'dict': queueDict,
+                    'cmd': sys.argv[1]
                 }
                 f.close()
             except json.JSONDecodeError:
                 ctx.obj = {
                     'username': usernameinput,
-                    'dict': {}
+                    'dict': {},
+                    'cmd': sys.argv[1]
                 }
-
         zip.close()
 
 
 @click.pass_context
 def updateJson(ctx):
-    uploadDetails = ctx.obj['dict'][ctx.obj['username']
-                                    ]['upload']['uploadDetails']
-    # getting video path that needs to be zipped
+    if ctx.obj['cmd'] == 'upload':
+        uploadDetails = ctx.obj['dict'][ctx.obj['username']
+                                        ]['upload']['uploadDetails']
+        # getting video path that needs to be zipped
 
-    if(len(uploadDetails) == 6):
-        videoFileToAdd = uploadDetails[0]
-    else:
-        videoFileToAdd = uploadDetails[len(uploadDetails) - 1][0]
-    print(os.path.basename(videoFileToAdd))
+        if(len(uploadDetails) == 6):
+            videoFileToAdd = uploadDetails[0]
+        else:
+            videoFileToAdd = uploadDetails[len(uploadDetails) - 1][0]
+        print(os.path.basename(videoFileToAdd))
 
     # updating the queueJson adding video
     queueFile = open('queueDict.json', 'w')
@@ -98,7 +101,11 @@ def updateJson(ctx):
     remove_from_zip(file_name, 'queueDict.json')
     with ZipFile(file_name, 'a') as zip:
         zip.write('queueDict.json')
-        zip.write(os.path.basename(videoFileToAdd))
+        if ctx.obj['cmd'] == 'upload':
+            try:
+                zip.write(os.path.basename(videoFileToAdd))
+            except FileNotFoundError:
+                print('Error: Couldnt Find File, video not zipped')
         zip.close()
 
 
