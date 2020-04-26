@@ -33,23 +33,6 @@ LIST_TYPE = listParamType()
 
 file_name = "JsonAndVideos.zip"
 
-# https://stackoverflow.com/questions/4653768/overwriting-file-in-ziparchive
-
-
-def remove_from_zip(zipfname, *filenames):
-    tempdir = tempfile.mkdtemp()
-    try:
-        tempname = os.path.join(tempdir, 'new.zip')
-        with ZipFile(zipfname, 'r') as zipread:
-            with ZipFile(tempname, 'w') as zipwrite:
-                for item in zipread.infolist():
-                    if item.filename not in filenames:
-                        data = zipread.read(item.filename)
-                        zipwrite.writestr(item, data)
-        shutil.move(tempname, zipfname)
-    finally:
-        shutil.rmtree(tempdir)
-
 
 @click.group()
 @click.pass_context
@@ -59,25 +42,38 @@ def main(ctx):
     """
     usernameinput = input('Enter your Youtube username: ')
 
-    with ZipFile(file_name, 'r') as zip:
-        zip.printdir()
-        with zip.open('queueDict.json', 'r') as f:
-            try:
-                ftext = f.read()
-                queueDict = json.loads(ftext)
-                ctx.obj = {
-                    'username': usernameinput,
-                    'dict': queueDict,
-                    'cmd': sys.argv[1]
-                }
-                f.close()
-            except json.JSONDecodeError:
-                ctx.obj = {
-                    'username': usernameinput,
-                    'dict': {},
-                    'cmd': sys.argv[1]
-                }
-        zip.close()
+    try:
+        with ZipFile(file_name, 'r') as zip:
+            zip.printdir()
+            with zip.open('queueDict.json', 'r') as f:
+                try:
+                    ftext = f.read()
+                    queueDict = json.loads(ftext)
+                    ctx.obj = {
+                        'username': usernameinput,
+                        'dict': queueDict,
+                        'cmd': sys.argv[1]
+                    }
+                    f.close()
+                    zip.close()
+                except json.JSONDecodeError:
+                    print('Empty QueueDict file')
+                    ctx.obj = {
+                        'username': usernameinput,
+                        'dict': {},
+                        'cmd': sys.argv[1]
+                    }
+                    zip.close()
+    except (FileNotFoundError, KeyError):
+        print('Error: Couldn\'t find zip file or Json File, Recreating Zip with Empty Json')
+        with ZipFile(file_name, 'w') as zip:
+            zip.write('queueDict.json')
+            zip.close()
+        ctx.obj = {
+            'username': usernameinput,
+            'dict': {},
+            'cmd': sys.argv[1]
+        }
 
 
 @click.pass_context
@@ -86,27 +82,57 @@ def updateJson(ctx):
         uploadDetails = ctx.obj['dict'][ctx.obj['username']
                                         ]['upload']['uploadDetails']
         # getting video path that needs to be zipped
+        videoFileToAdd = uploadDetails[len(uploadDetails) - 1][0]
 
-        if(len(uploadDetails) == 6):
-            videoFileToAdd = uploadDetails[0]
-        else:
-            videoFileToAdd = uploadDetails[len(uploadDetails) - 1][0]
-        print(os.path.basename(videoFileToAdd))
-
-    # updating the queueJson adding video
+    # saving dictionary outside of zip for viewing/debugging
     queueFile = open('queueDict.json', 'w')
     queueJson = json.dumps(ctx.obj['dict'])
     queueFile.write(queueJson)
     queueFile.close()
-    remove_from_zip(file_name, 'queueDict.json')
-    with ZipFile(file_name, 'a') as zip:
-        zip.write('queueDict.json')
+
+    # save videos folder
+    with ZipFile(file_name, 'r') as zipr:
+        for file in zipr.namelist():
+            if file.startswith('youtube/'):
+                zipr.extract(file, 'oldVideos')
+        zipr.close()
+    # Recreate Zip File
+    with ZipFile(file_name, 'w') as zipw:
+        zipw.write('queueDict.json')
+        # Refinding Videos in upload section on Dict
+        for user in ctx.obj['dict'].keys():
+            print(user)
+            try:
+                uploadList = ctx.obj['dict'][user]['upload']['uploadDetails']
+                for entry in uploadList:
+                    print('     ', entry[0])
+                    try:
+                        videoDescriptor = open(entry[0], 'rb')
+                        zipLocation = zipw.open(
+                            'youtube/videos/' + os.path.basename(entry[0]), mode='w')
+                        shutil.copyfileobj(videoDescriptor, zipLocation)
+                        zipLocation.close()
+                        videoDescriptor.close()
+                        print('         added video: ',
+                              os.path.basename(entry[0]))
+                    except FileNotFoundError:
+                        print('         Video Not Found: ',
+                              os.path.basename(entry[0]))
+            except KeyError:
+                print('     ' + user + ' no upload section')
+            print('------------------')
+        # adding a new video
         if ctx.obj['cmd'] == 'upload':
             try:
-                zip.write(os.path.basename(videoFileToAdd))
+                videoDescriptor = open(videoFileToAdd, 'rb')
+                zipLocation = zipw.open(
+                    'youtube/videos/' + os.path.basename(videoFileToAdd), mode='w')
+                shutil.copyfileobj(videoDescriptor, zipLocation)
+                videoDescriptor.close()
+                zipLocation.close()
             except FileNotFoundError:
                 print('Error: Couldnt Find File, video not zipped')
-        zip.close()
+        zipw.close()
 
 
 def countList(x):
@@ -127,7 +153,7 @@ def countList(x):
 @click.argument('privacystatus')
 def upload(ctx, videopath, title, description, tags, category, privacystatus):
     """
-    Queues a video the user wants uploaded.
+    Queues a video the user wants uploaded, stores as list of lists.
 
     file: File path to the video to upload
 
@@ -146,8 +172,8 @@ def upload(ctx, videopath, title, description, tags, category, privacystatus):
         ctx.obj['dict'] = {
             ctx.obj['username']: {
                 'upload': {
-                    'uploadDetails': [videopath, title, description,
-                                      tags, category, privacystatus]
+                    'uploadDetails': [[videopath, title, description,
+                                       tags, category, privacystatus]]
                 }
             }
         }
@@ -156,16 +182,16 @@ def upload(ctx, videopath, title, description, tags, category, privacystatus):
     elif not ctx.obj['dict'].get(ctx.obj['username']):
         ctx.obj['dict'][ctx.obj['username']] = {
             'upload': {
-                'uploadDetails': [videopath, title, description,
-                                  tags, category, privacystatus]
+                'uploadDetails': [[videopath, title, description,
+                                   tags, category, privacystatus]]
             }
         }
         print(ctx.obj['dict'])
     # first time upload but user entry exists
     elif not ctx.obj['dict'][ctx.obj['username']].get('upload'):
         ctx.obj['dict'][ctx.obj['username']]['upload'] = {
-            'uploadDetails': [videopath, title, description,
-                              tags, category, privacystatus]
+            'uploadDetails': [[videopath, title, description,
+                               tags, category, privacystatus]]
         }
         print(ctx.obj['dict'])
     # updating user subscribe entry
@@ -174,15 +200,17 @@ def upload(ctx, videopath, title, description, tags, category, privacystatus):
                                        ]['upload']['uploadDetails']
         print('current entry is: ', currentEntry)
         # single entry
+        '''
         if countList(currentEntry) == 1:
             ctx.obj['dict'][ctx.obj['username']
                             ]['upload']['uploadDetails'] = [currentEntry, [videopath, title, description, tags, category, privacystatus]]
             print(ctx.obj['dict'])
+        '''
         # multiple entry
-        else:
-            ctx.obj['dict'][ctx.obj['username']
-                            ]['upload']['uploadDetails'].append([videopath, title, description, tags, category, privacystatus])
-            print(ctx.obj['dict'])
+
+        ctx.obj['dict'][ctx.obj['username']
+                        ]['upload']['uploadDetails'].append([videopath, title, description, tags, category, privacystatus])
+        print(ctx.obj['dict'])
     updateJson()
 
 
