@@ -1,7 +1,8 @@
 youtubeAPIKey.txt
+*.zip
 *.mp4
-clientcmdline/test.zip
-clientcmdline/test.json
-clientcmdline/test.py
-clientcmdline/test.txt
-clientcmdline/oldVideos
+**/test.zip
+**/test.json
+**/test.py
+**/test.txt
+**/oldVideos
