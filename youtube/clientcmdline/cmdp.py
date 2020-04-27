@@ -116,11 +116,22 @@ def updateJson(ctx):
                         print('         added video: ',
                               os.path.basename(entry[0]))
                     except FileNotFoundError:
-                        print('         Video Not Found: ',
-                              os.path.basename(entry[0]))
+                        if(os.path.exists('oldvideos/youtube/videos/' + os.path.basename(entry[0]))):
+                            print('     Adding file from oldvideos')
+                            videoDescriptor = open(
+                                'oldvideos/youtube/videos/' + os.path.basename(entry[0]), 'rb')
+                            zipLocation = zipw.open(
+                                'youtube/videos/' + os.path.basename(entry[0]), mode='w')
+                            shutil.copyfileobj(videoDescriptor, zipLocation)
+                            zipLocation.close()
+                            videoDescriptor.close()
+                        else:
+                            print('         Video Not Found: ',
+                                  os.path.basename(entry[0]))
             except KeyError:
                 print('     ' + user + ' no upload section')
             print('------------------')
+        """
         # adding a new video
         if ctx.obj['cmd'] == 'upload':
             try:
@@ -132,6 +143,7 @@ def updateJson(ctx):
                 zipLocation.close()
             except FileNotFoundError:
                 print('Error: Couldnt Find File, video not zipped')
+        """
         zipw.close()
 
 
