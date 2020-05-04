@@ -79,10 +79,7 @@ def main(ctx):
 @click.pass_context
 def updateJson(ctx):
     if ctx.obj['cmd'] == 'upload':
-        uploadDetails = ctx.obj['dict'][ctx.obj['username']
-                                        ]['upload']['uploadDetails']
-        # getting video path that needs to be zipped
-        videoFileToAdd = uploadDetails[len(uploadDetails) - 1][0]
+        counter = 0
 
     # saving dictionary outside of zip for viewing/debugging
     queueFile = open('queueDict.json', 'w')
@@ -94,6 +91,9 @@ def updateJson(ctx):
     with ZipFile(file_name, 'r') as zipr:
         for file in zipr.namelist():
             if file.startswith('youtube/'):
+                if ctx.obj['cmd'] == 'upload':
+                    counter = max(counter, int(
+                        os.path.basename(file).split('-')[2]))
                 zipr.extract(file, 'oldVideos')
         zipr.close()
     # Recreate Zip File
@@ -131,19 +131,6 @@ def updateJson(ctx):
             except KeyError:
                 print('     ' + user + ' no upload section')
             print('------------------')
-        """
-        # adding a new video
-        if ctx.obj['cmd'] == 'upload':
-            try:
-                videoDescriptor = open(videoFileToAdd, 'rb')
-                zipLocation = zipw.open(
-                    'youtube/videos/' + os.path.basename(videoFileToAdd), mode='w')
-                shutil.copyfileobj(videoDescriptor, zipLocation)
-                videoDescriptor.close()
-                zipLocation.close()
-            except FileNotFoundError:
-                print('Error: Couldnt Find File, video not zipped')
-        """
         zipw.close()
 
 

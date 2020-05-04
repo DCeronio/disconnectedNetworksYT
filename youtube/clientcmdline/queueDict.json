@@ -1,1 +1,68 @@
-{"fds": {"subscribe": {"channelname": "channelname"}, "upload": {"uploadDetails": [["E:\\SJSU\\Spring2020\\cs180h\\disconnectedNetworksYT\\youtube\\clientcmdline\\nature.mp4", "nature", "short clip of nature", ["nature", " quick"], "12", "public"]]}, "search": {"query": [["trees", "50"], ["cars", "50"]]}}, "dsa": {"upload": {"uploadDetails": [["E:\\SJSU\\Spring2020\\cs180h\\disconnectedNetworksYT\\youtube\\clientcmdline\\nature.mp4", "nature", "short clip of nature", ["nature", " quick"], "12", "private"]]}, "search": {"query": ["cars", "50"]}}}
+{
+    "fds": {
+        "subscribe": {
+            "channelname": "channelname"
+        },
+        "upload": {
+            "uploadDetails": [
+                [
+                    "E:\\SJSU\\Spring2020\\cs180h\\disconnectedNetworksYT\\youtube\\clientcmdline\\nature.mp4",
+                    "nature",
+                    "short clip of nature",
+                    [
+                        "nature",
+                        " quick"
+                    ],
+                    "12",
+                    "public"
+                ],
+                [
+                    "E:\\SJSU\\Spring2020\\cs180h\\disconnectedNetworksYT\\youtube\\clientcmdline\\nature.mp4",
+                    "title",
+                    "description",
+                    [
+                        "tag1 ",
+                        " tag2"
+                    ],
+                    "12",
+                    "private"
+                ]
+            ]
+        },
+        "search": {
+            "query": [
+                [
+                    "trees",
+                    "50"
+                ],
+                [
+                    "cars",
+                    "50"
+                ]
+            ]
+        }
+    },
+    "dsa": {
+        "upload": {
+            "uploadDetails": [
+                [
+                    "E:\\SJSU\\Spring2020\\cs180h\\disconnectedNetworksYT\\youtube\\clientcmdline\\nature.mp4",
+                    "nature",
+                    "short clip of nature",
+                    [
+                        "nature",
+                        " quick"
+                    ],
+                    "12",
+                    "private"
+                ]
+            ]
+        },
+        "search": {
+            "query": [
+                "cars",
+                "50"
+            ]
+        }
+    }
+}
