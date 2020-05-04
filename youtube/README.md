@@ -1,6 +1,9 @@
 # disconnectedNetworksYT
 cs 180h senior project
 
+This is one sentence on one line.
+This is another sentence on another line.
+
 # Project Explanation
 
 The project is setup as a server and client. The client queues the actions the user would
