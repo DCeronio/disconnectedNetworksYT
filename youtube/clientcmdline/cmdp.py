@@ -31,7 +31,7 @@ class listParamType(click.ParamType):
 
 LIST_TYPE = listParamType()
 
-file_name = "JsonAndVideos.zip"
+file_name = "JsonAndVideosCLIENT.zip"
 
 
 @click.group()
