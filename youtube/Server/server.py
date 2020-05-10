@@ -13,8 +13,6 @@ server_zip = 'SERVERreply.zip'
 # rate
 
 # search
-
-
 def search(youtube, q, resultNumber):
     """
     Does a Youtube Search and returns a list with a dictionary of info{title, description, videoid} for each video.
@@ -51,7 +49,7 @@ def main():
             elif entry == 'rate':
                 pass
             elif entry == 'search':
-                search(youtube, )
+                search(youtube, entry)
             elif entry == 'subsribe':
                 pass
             elif entry == 'upload':
