@@ -5,6 +5,7 @@ import tempfile
 import shutil
 import os
 import sys
+from pytube import YouTube
 
 """
 Type 'python cmdp.py --help' for options
@@ -66,9 +67,11 @@ def main(ctx):
                     zip.close()
     except (FileNotFoundError, KeyError):
         print('Error: Couldn\'t find zip file or Json File, Recreating Zip with Empty Json')
+        jfile = open('queueDict.json', 'w')
         with ZipFile(file_name, 'w') as zip:
             zip.write('queueDict.json')
             zip.close()
+        jfile.close()
         ctx.obj = {
             'username': usernameinput,
             'dict': {},
@@ -91,9 +94,9 @@ def updateJson(ctx):
     with ZipFile(file_name, 'r') as zipr:
         for file in zipr.namelist():
             if file.startswith('youtube/'):
-                if ctx.obj['cmd'] == 'upload':
-                    counter = max(counter, int(
-                        os.path.basename(file).split('-')[2]))
+               # if ctx.obj['cmd'] == 'upload':
+                    # counter = max(counter, int(
+                        # os.path.basename(file).split('-')[2]))
                 zipr.extract(file, 'oldVideos')
         zipr.close()
     # Recreate Zip File
@@ -134,12 +137,22 @@ def updateJson(ctx):
         zipw.close()
 
 
-def countList(x):
-    count = 0
-    for el in x:
-        if isinstance(el, list):
-            count += 1
-    return count
+@main.command()
+@click.argument('videoid')
+@click.argument('outputpath')
+def download(videoid, outputpath):
+    """
+    Uses PyTube to download a given videoid.
+
+    videoid: id of a youtube vidoe obtained from serverReply.zip search section
+
+    outputpath: Where you would like the video to be saved to
+    """
+    urlString = 'http://youtube.com/watch?v=' + videoid
+    yt = YouTube(urlString)
+    yt.streams.filter(progressive=True, file_extension='mp4').order_by(
+        'resolution')[-1].download(output_path=outputpath)
+    print(yt.title + ' downlaoded to ' + outputpath)
 
 
 @main.command()
@@ -197,28 +210,21 @@ def upload(ctx, videopath, title, description, tags, category, privacystatus):
     else:
         currentEntry = ctx.obj['dict'][ctx.obj['username']
                                        ]['upload']['uploadDetails']
-        print('current entry is: ', currentEntry)
-        # single entry
-        '''
-        if countList(currentEntry) == 1:
-            ctx.obj['dict'][ctx.obj['username']
-                            ]['upload']['uploadDetails'] = [currentEntry, [videopath, title, description, tags, category, privacystatus]]
-            print(ctx.obj['dict'])
-        '''
         # multiple entry
-
-        ctx.obj['dict'][ctx.obj['username']
-                        ]['upload']['uploadDetails'].append([videopath, title, description, tags, category, privacystatus])
-        print(ctx.obj['dict'])
+        if [videopath, title, description, tags, category, privacystatus] not in currentEntry:
+            ctx.obj['dict'][ctx.obj['username']
+                            ]['upload']['uploadDetails'].append([videopath, title, description, tags, category, privacystatus])
+        else:
+            print('Entry Exists, not queueing')
     updateJson()
 
 
 @main.command()
 @click.pass_context
-@click.argument('channelName')
-def subscribe(ctx, channelname):
+@click.argument('channelid')
+def subscribe(ctx, channelid):
     """
-    Queues a channel a user wants to subscribe to. Stores in JSON as string of list of strings.
+    Queues a channel a user wants to subscribe to. Stores in JSON as list of strings.
 
     channelname: Name of the channel the user wants to subscribe to.
     """
@@ -227,7 +233,7 @@ def subscribe(ctx, channelname):
         ctx.obj['dict'] = {
             ctx.obj['username']: {
                 'subscribe': {
-                    'channelname': channelname
+                    'channelname': [channelid]
                 }
             }
         }
@@ -236,32 +242,21 @@ def subscribe(ctx, channelname):
     elif not ctx.obj['dict'].get(ctx.obj['username']):
         ctx.obj['dict'][ctx.obj['username']] = {
             'subscribe': {
-                'channelname': channelname
+                'channelname': [channelid]
             }
         }
         print(ctx.obj['dict'])
     # first time subscribing but user entry exists
     elif not ctx.obj['dict'][ctx.obj['username']].get('subscribe'):
         ctx.obj['dict'][ctx.obj['username']]['subscribe'] = {
-            'channelname': channelname
+            'channelname': [channelid]
         }
         print(ctx.obj['dict'])
     # updating user subscribe entry
     else:
-        currentEntry = ctx.obj['dict'][ctx.obj['username']
-                                       ]['subscribe']['channelname']
-        print('current entry is: ', currentEntry)
-        print(type(currentEntry))
-        # single entry
-        if isinstance(currentEntry, str):
-            ctx.obj['dict'][ctx.obj['username']
-                            ]['subscribe']['channelname'] = [currentEntry, channelname]
-            print(ctx.obj['dict'])
-        # multiple entry
-        else:
-            ctx.obj['dict'][ctx.obj['username']
-                            ]['subscribe']['channelname'].append(channelname)
-            print(ctx.obj['dict'])
+        ctx.obj['dict'][ctx.obj['username']
+                        ]['subscribe']['channelname'].append(channelid)
+        print(ctx.obj['dict'])
     updateJson()
 
 
@@ -271,7 +266,7 @@ def subscribe(ctx, channelname):
 @click.argument('resultnumber')
 def search(ctx, query, resultnumber):
     """
-    Queues what a user wants to search. Stores in JSON as a list or list of lists.
+    Queues what a user wants to search. Stores in JSON as a list of lists.
 
     query: What the user wants searched.
 
@@ -282,7 +277,7 @@ def search(ctx, query, resultnumber):
         ctx.obj['dict'] = {
             ctx.obj['username']: {
                 'search': {
-                    'query': [query, resultnumber]
+                    'query': [[query, resultnumber]]
                 }
             }
         }
@@ -291,55 +286,42 @@ def search(ctx, query, resultnumber):
     elif not ctx.obj['dict'].get(ctx.obj['username']):
         ctx.obj['dict'][ctx.obj['username']] = {
             'search': {
-                'query': [query, resultnumber]
+                'query': [[query, resultnumber]]
             }
         }
         print(ctx.obj['dict'])
     # first time searching but other user entries exist
     elif not ctx.obj['dict'][ctx.obj['username']].get('search'):
         ctx.obj['dict'][ctx.obj['username']]['search'] = {
-            'query': [query, resultnumber]
+            'query': [[query, resultnumber]]
         }
         print(ctx.obj['dict'])
     # updating user search entry
     else:
-        currentquery = ctx.obj['dict'][ctx.obj['username']
-                                       ]['search']['query']
-        print('current entry is: ', currentquery)
-        # single entry
-        if not any(isinstance(el, list) for el in currentquery):
-            ctx.obj['dict'][ctx.obj['username']
-                            ]['search']['query'] = [currentquery, [query, resultnumber]]
-            print(ctx.obj['dict'])
-        # multiple entry
-        else:
-            ctx.obj['dict'][ctx.obj['username']
-                            ]['search']['query'].append([query, resultnumber])
-            print(ctx.obj['dict'])
+        ctx.obj['dict'][ctx.obj['username']
+                        ]['search']['query'].append([query, resultnumber])
+        print(ctx.obj['dict'])
     updateJson()
 
 
 @main.command()
 @click.pass_context
 @click.argument('rating')
-@click.argument('videoname')
-@click.argument('channelname')
-def rate(ctx, rating, videoname, channelname):
+@click.argument('videoid')
+def rate(ctx, rating, videoid):
     """
-    Queues what a user would rate a video. Stores in Json at list or list of lists.
+    Queues what a user would rate a video. Stores in Json as list of lists.
 
     rating: if a user rates like, dislike, or neutral (unlike/dislike).
 
-    videoname: name of the video.
-
-    channelname: name of the channel.
+    videoid: id of the video you want to rate, found in SERVERreply for search
     """
     # empty dict file
     if not ctx.obj['dict']:
         ctx.obj['dict'] = {
             ctx.obj['username']: {
                 'rate': {
-                    'rating': [rating, videoname, channelname]
+                    'rating': [[rating, videoid]]
                 }
             }
         }
@@ -348,42 +330,32 @@ def rate(ctx, rating, videoname, channelname):
     elif not ctx.obj['dict'].get(ctx.obj['username']):
         ctx.obj['dict'][ctx.obj['username']] = {
             'rate': {
-                'rating': [rating, videoname, channelname]
+                'rating': [[rating, videoid]]
             }
         }
         print(ctx.obj['dict'])
     # first time rating but other user entries exist
     elif not ctx.obj['dict'][ctx.obj['username']].get('rate'):
         ctx.obj['dict'][ctx.obj['username']]['rate'] = {
-            'rating': [rating, videoname, channelname]
+            'rating': [[rating, videoid]]
         }
         print(ctx.obj['dict'])
     # updating user rate entry
     else:
-        currentrating = ctx.obj['dict'][ctx.obj['username']
-                                        ]['rate']['rating']
-        print('current entry is: ', currentrating)
-        # single entry
-        if not any(isinstance(el, list) for el in currentrating):
-            ctx.obj['dict'][ctx.obj['username']
-                            ]['rate']['rating'] = [currentrating, [rating, videoname, channelname]]
-            print(ctx.obj['dict'])
-        # multiple entry
-        else:
-            ctx.obj['dict'][ctx.obj['username']
-                            ]['rate']['rating'].append([rating, videoname, channelname])
-            print(ctx.obj['dict'])
+        ctx.obj['dict'][ctx.obj['username']
+                        ]['rate']['rating'].append([rating, videoid])
+        print(ctx.obj['dict'])
     updateJson()
 
 
 @main.command()
 @click.pass_context
-@click.argument('videoname')
-@click.argument('channelname')
+@click.argument('videoid')
+@click.argument('channelid')
 @click.argument('commenttext')
-def comment(ctx, videoname, channelname, commenttext):
+def comment(ctx, videoid, channelid, commenttext):
     """
-    Queues a comment a user would like to leave on a video.
+    Queues a comment a user would like to leave on a video. Stores in JSON as List of Lists
 
     videoname: name of the video.
 
@@ -396,7 +368,7 @@ def comment(ctx, videoname, channelname, commenttext):
         ctx.obj['dict'] = {
             ctx.obj['username']: {
                 'comment': {
-                    'commententries': [videoname, channelname, commenttext]
+                    'commententries': [[videoid, channelid, commenttext]]
                 }
             }
         }
@@ -405,31 +377,21 @@ def comment(ctx, videoname, channelname, commenttext):
     elif not ctx.obj['dict'].get(ctx.obj['username']):
         ctx.obj['dict'][ctx.obj['username']] = {
             'comment': {
-                'commententries': [videoname, channelname, commenttext]
+                'commententries': [[videoid, channelid, commenttext]]
             }
         }
         print(ctx.obj['dict'])
     # first time commenting but other user entries exist
     elif not ctx.obj['dict'][ctx.obj['username']].get('comment'):
         ctx.obj['dict'][ctx.obj['username']]['comment'] = {
-            'commententries': [videoname, channelname, commenttext]
+            'commententries': [[videoid, channelid, commenttext]]
         }
         print(ctx.obj['dict'])
     # updating user comment entry
     else:
-        currentcomment = ctx.obj['dict'][ctx.obj['username']
-                                         ]['comment']['commententries']
-        print('current entry is: ', currentcomment)
-        # single entry
-        if not any(isinstance(el, list) for el in currentcomment):
-            ctx.obj['dict'][ctx.obj['username']
-                            ]['comment']['commententries'] = [currentcomment, [videoname, channelname, commenttext]]
-            print(ctx.obj['dict'])
-        # multiple entry
-        else:
-            ctx.obj['dict'][ctx.obj['username']
-                            ]['comment']['commententries'].append([videoname, channelname, commenttext])
-            print(ctx.obj['dict'])
+        ctx.obj['dict'][ctx.obj['username']
+                        ]['comment']['commententries'].append([videoid, channelid, commenttext])
+        print(ctx.obj['dict'])
     updateJson()
 
 

@@ -1,4 +1,6 @@
 youtubeAPIKey.txt
+client_secret_file.json
+youtube
 *.zip
 *.mp4
 **/test.zip
