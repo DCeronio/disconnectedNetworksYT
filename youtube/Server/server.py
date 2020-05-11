@@ -58,7 +58,7 @@ def search(youtube, q, resultNumber):
     searchList = []
     for entry in res['items']:
         searchList.append({'title': entry['snippet']['title'], 'description': entry['snippet']
-                           ['description'], 'videoid': entry['id']['videoId'], 'thumbnailUrl': entry['snippet']['thumbnails']['high']['url']})
+                           ['description'], 'videoid': entry['id']['videoId'], 'channelId': entry['snippet']['channelId'], 'thumbnailUrl': entry['snippet']['thumbnails']['high']['url']})
     return searchList
 
 
