@@ -1,15 +1,12 @@
 # disconnectedNetworksYT
 cs 180h senior project
 
-This is one sentence on one line.
-This is another sentence on another line.
-
 # Project Explanation
 
-The project is setup as a server and client. The client queues the actions the user would
-like to take in a zipped JSON file along with the .mp3's of videos they would also like to upload.
-The server will read the JSON full of actions and service each action. It will return confirmations 
-and other needed data to the client to be displayed to the user.
+The project is setup as a server and client. 
+The client queues the actions the user would like to take in a zipped JSON file along with the .mp3's of videos they would also like to upload.
+The server will read the JSON full of actions and service each action. 
+It will return confirmations and other needed data.
 
 ## google project setup
 Since the project uses the youtube data api we will need a api key. This is retrieved through
