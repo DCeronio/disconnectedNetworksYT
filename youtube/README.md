@@ -9,12 +9,15 @@ The server will read the JSON full of actions and service each action.
 It will create a zip that is full of confirmations for each actions, video search information, and thumnails.
 
 ## pip install list
--pytube
--click
--google-api-python-client
+- pytube
+- click
+- google-api-python-client
 
 
-Diagrams:
+## Diagrams
+![](readmeImages/zipOrg.png)
+![](readmeImages/clientZip.png)
+![](readmeImages/serverZip.png)
 
 ## Google Project Setup
 Since the project uses the youtube data api we will need a api key. 
@@ -210,7 +213,8 @@ If there is a empty dictionary an entry for the user will be created with the co
 If there is a dictionary but no user entry, the user and comamand and arguments will be recorded.
 if there is a dictionary, user but not the specific command section, that section will be recorded with the needed arguments.
 Finally if the dictionary, user, and command section exist the entry will be updated.
-All the entries are lists of lists, so the new one can just be appended. 
+All the entries are lists of lists, so the new one can just be appended.
+For upload, a new entry will not be made if it already exists.
 
 At the end of each function there is a call to the updateJson function.
 This function updates the JSON file and makes the JsonAndVideos.zip.
@@ -272,6 +276,96 @@ If not they are appended to the failure list.
 
 The dictionary will then be dumped into replyDict.json as a json string.
 After the SERVERreply.zip is created and the folders with thumbnails will be zipped along with the json file.
+
+Here is an Example of a filled out replyDict.json.
+Note that the functions failed becuase they were not given real information.
+```
+{
+    "username": {
+        "upload": {
+            "success": [],
+            "failure": [
+                [
+                    "E:\\SJSU\\Spring2020\\cs180h\\raspPiVideo.mp4",
+                    "title"
+                ]
+            ]
+        },
+        "comment": {
+            "success": [],
+            "failure": [
+                [
+                    "123",
+                    "456",
+                    "comment text"
+                ]
+            ]
+        },
+        "rate": {
+            "success": [],
+            "failure": [
+                [
+                    "like",
+                    "videoid"
+                ]
+            ]
+        },
+        "search": [
+            [
+                {
+                    "title": "Find Text in String With Excel SEARCH Function",
+                    "description": "http://www.contextures.com/30excelfunctionsin30days30xl30d.html The SEARCH function looks for a text string, within another text string. The SEARCH function ...",
+                    "videoid": "ooQMVS-acCg",
+                    "channelId": "UCNFqyNLJshdysCyj-xeegnA",
+                    "thumbnailUrl": "https://i.ytimg.com/vi/ooQMVS-acCg/hqdefault.jpg"
+                },
+                {
+                    "title": "How to Search Text or Contents in Any Files - Windows 10",
+                    "description": "This video will show you how you can easily search text or contents in any files in Windows 10. By default windows enable searching for file & folders only.",
+                    "videoid": "Iwn5MlZNs8E",
+                    "channelId": "UCwNmrAtqCL6cfb3UhS4rDnQ",
+                    "thumbnailUrl": "https://i.ytimg.com/vi/Iwn5MlZNs8E/hqdefault.jpg"
+                },
+                {
+                    "title": "Philipp Krenn \u2014 Full-Text Search Explained",
+                    "description": "Today's applications are expected to provide powerful full-text search. But how does that work in general and how do I implement it on my site or in my ...",
+                    "videoid": "2OY4tE2TrcI",
+                    "channelId": "UCYrGYT7BswsJGkmG7-IAF8g",
+                    "thumbnailUrl": "https://i.ytimg.com/vi/2OY4tE2TrcI/hqdefault.jpg"
+                },
+                {
+                    "title": "Search Files &amp; Folders by Their Text Contents in Windows 10/8/7",
+                    "description": "How to Search Files by Text Contents in Windows PC #FileSearch #SearchByTextContents Facebook Page : https://www.facebook.com/MeMJTube Follow on ...",
+                    "videoid": "qEWWtMWIuGU",
+                    "channelId": "UCzvmBKjsw19OY5RBauMtVpA",
+                    "thumbnailUrl": "https://i.ytimg.com/vi/qEWWtMWIuGU/hqdefault.jpg"
+                },
+                {
+                    "title": "Text search with Lucene (1 of 2)",
+                    "description": "Intro to using the Lucene text search library. For other programming videos, including a complete beginner's course, visit http://codeschool.org.",
+                    "videoid": "x37B_lCi_gc",
+                    "channelId": "UCseUQK4kC3x2x543nHtGpzw",
+                    "thumbnailUrl": "https://i.ytimg.com/vi/x37B_lCi_gc/hqdefault.jpg"
+                }
+            ]
+        ],
+        "subscribe": {
+            "success": [],
+            "failure": [
+                "channelid"
+            ]
+        }
+    },
+    "fds": {
+        "subscribe": {
+            "success": [],
+            "failure": [
+                "channelid"
+            ]
+        }
+    }
+}
+```
 
 # Issues Along the Way
 
