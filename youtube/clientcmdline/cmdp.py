@@ -81,9 +81,6 @@ def main(ctx):
 
 @click.pass_context
 def updateJson(ctx):
-    if ctx.obj['cmd'] == 'upload':
-        counter = 0
-
     # saving dictionary outside of zip for viewing/debugging
     queueFile = open('queueDict.json', 'w')
     queueJson = json.dumps(ctx.obj['dict'])
@@ -94,9 +91,6 @@ def updateJson(ctx):
     with ZipFile(file_name, 'r') as zipr:
         for file in zipr.namelist():
             if file.startswith('youtube/'):
-               # if ctx.obj['cmd'] == 'upload':
-                    # counter = max(counter, int(
-                        # os.path.basename(file).split('-')[2]))
                 zipr.extract(file, 'oldVideos')
         zipr.close()
     # Recreate Zip File
@@ -226,7 +220,7 @@ def subscribe(ctx, channelid):
     """
     Queues a channel a user wants to subscribe to. Stores in JSON as list of strings.
 
-    channelname: Name of the channel the user wants to subscribe to.
+    channelid: id of the channel the user wants to subscribe to.
     """
     # empty dict file
     if not ctx.obj['dict']:
@@ -357,9 +351,9 @@ def comment(ctx, videoid, channelid, commenttext):
     """
     Queues a comment a user would like to leave on a video. Stores in JSON as List of Lists
 
-    videoname: name of the video.
+    videoid: id of the video.
 
-    channelname: name of the channel.
+    channelid: id of the channel.
 
     commenttext: text of the comment the user would like to leave.
     """
